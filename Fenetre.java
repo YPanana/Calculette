@@ -133,6 +133,27 @@ public class Fenetre extends JFrame {
 		//On affiche la fenetre
 		this.setVisible(true);
 	}
+
+	/*
+	 * Méthodes privées
+	 */
+
+	 /**
+	  * Fonction permettant de savoir si un bouton avec un chiffre a été cliqué.
+	  * @param bouton : le bouton cliqué.
+	  * @return TRUE si un chiffre a été cliqué, FALSE sinon.
+	  */
+	private boolean boutonChiffreClique(JButton bouton) {
+		boolean resultat = false;
+		String[] chiffres = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+
+		for (int i = 0 ; i < chiffres.length ; i++) {
+			if (bouton.getText().equals(chiffres[i])) {
+				resultat = true;
+			}
+		}
+		return resultat;
+	}
 	
 	/*
 	 * Classes internes
@@ -145,6 +166,10 @@ public class Fenetre extends JFrame {
 		public void actionPerformed(ActionEvent event) {
 			// TODO Auto-generated method stub
 			JButton boutonClique = (JButton)event.getSource();
+
+			if (boutonChiffreClique(boutonClique)) {
+				label.setText(boutonClique.getText());
+			}
 		}
 		
 	}
