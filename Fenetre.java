@@ -11,7 +11,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class Fenetre extends JFrame {
+public class Fenetre extends JFrame implements Observateur {
 	
 	/*
 	 * Attributs
@@ -52,7 +52,12 @@ public class Fenetre extends JFrame {
 	//-- Elements du programme --
 	//Indicateurs booleens
 	private boolean operateurSelectionne = false;
+	private boolean operande1Selectionne = false;
+	private boolean pointSelectionne     = false;
 	private boolean effacer              = false;
+	
+	//Notre classe Calculette qui effectue les calculs
+	private Calculette calc;
 	
 	/*
 	 * Constructeurs
@@ -65,6 +70,9 @@ public class Fenetre extends JFrame {
 		this.setSize(200, 250);      						 //Dimensions
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); //Comportement(le programme s'arrete lorsque l'on ferme la fenetre)
 		this.setLocationRelativeTo(null);                    //Fenetre centree
+		
+		this.calc = new Calculette();
+		calc.addObservateur(this);
 		
 		//Choix du Layout Manager Border Layout pour le Content Pane de la fenetre
 		this.getContentPane().setLayout(new BorderLayout());
@@ -133,26 +141,24 @@ public class Fenetre extends JFrame {
 		//On affiche la fenetre
 		this.setVisible(true);
 	}
-
+	
 	/*
-	 * Méthodes privées
+	 * Methodes
 	 */
-
-	 /**
-	  * Fonction permettant de savoir si un bouton avec un chiffre a été cliqué.
-	  * @param bouton : le bouton cliqué.
-	  * @return TRUE si un chiffre a été cliqué, FALSE sinon.
-	  */
-	private boolean boutonChiffreClique(JButton bouton) {
-		boolean resultat = false;
-		String[] chiffres = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
-
-		for (int i = 0 ; i < chiffres.length ; i++) {
-			if (bouton.getText().equals(chiffres[i])) {
-				resultat = true;
-			}
+	@Override
+	public void update(String s) {
+		// TODO Auto-generated method stub
+		if (s.endsWith(".0")) {
+			s = s.replace(".0", "");
 		}
-		return resultat;
+		if (effacer) {
+			this.label.setText(s);
+		}
+		else {
+			String texte = this.label.getText();
+			texte += s;
+			this.label.setText(texte);
+		}
 	}
 	
 	/*
@@ -165,13 +171,66 @@ public class Fenetre extends JFrame {
 		@Override
 		public void actionPerformed(ActionEvent event) {
 			// TODO Auto-generated method stub
+			String op1,op2;
+			double temp;
 			JButton boutonClique = (JButton)event.getSource();
-
-			if (boutonChiffreClique(boutonClique)) {
-				label.setText(boutonClique.getText());
+			
+			String valeur = boutonClique.getText();
+			
+			if (valeur.equals("0") || valeur.equals("1") || valeur.equals("2") || valeur.equals("3") ||
+				valeur.equals("4") || valeur.equals("5") || valeur.equals("6") || valeur.equals("7") ||
+				valeur.equals("8") || valeur.equals("9"))
+			{
+				if (operateurSelectionne) {
+					effacer = true;
+					operateurSelectionne = false;
+				}
+				else {
+					if (label.getText().equals("0")) {
+						effacer = true;
+					}
+					else {
+						effacer = false;
+					}
+				}
+				update(valeur);
 			}
+			else if (valeur.equals("+") || valeur.equals("-") || valeur.equals("/") || valeur.equals("*")) {
+				operateurSelectionne = true;
+				
+				if (!operande1Selectionne) {
+					op1 = label.getText();
+					calc.setOperande1(Double.parseDouble(op1));
+					calc.setOperateur(valeur);
+					operande1Selectionne = true;
+				}
+				else {
+					op1 = label.getText();
+					temp = calc.getOperande1() + Double.parseDouble(op1);
+					update(Double.toString(temp));
+					calc.setOperande1(temp);
+				}
+			}
+			else if (valeur.equals("=")) {
+				operateurSelectionne = true;
+				operande1Selectionne = false;
+				
+				op2 = label.getText();
+				calc.setOperande2(Double.parseDouble(op2));
+				calc.effectuerCalcul();
+			}
+			else if (valeur.equals(".")) {
+				if (!pointSelectionne) {
+					effacer = false;
+					update(valeur);
+					pointSelectionne = true;
+				}
+			}
+			else if (valeur.equals("C")) {
+				effacer = true;
+				update("0");
+				calc = new Calculette();
+			}	
 		}
-		
 	}
-
 }
